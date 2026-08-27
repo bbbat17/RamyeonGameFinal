@@ -777,7 +777,7 @@ function startBoiling(waterElement, potElement) {
 
     createBubble();
 
-    const remainingEvaporateTime = Math.max(0, 70000 - initialAccumulated);
+    const remainingEvaporateTime = Math.max(0, 7000 - initialAccumulated);
     waterElement.evaporateTimer = setTimeout(() => {
       startEvaporating(waterElement, potElement);
     }, remainingEvaporateTime);
