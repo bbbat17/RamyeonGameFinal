@@ -693,7 +693,7 @@ function startBoiling(waterElement, potElement) {
     const START_FPS = 5;   
     const MAX_FPS = 25;    
     const MAX_BUBBLES = 50; 
-    const EVAPORATE_DURATION = 2000;
+    const EVAPORATE_DURATION = 1000;
 
     function createBubble() {
       if (!waterElement.isConnected || !bubbleContainer) return;
