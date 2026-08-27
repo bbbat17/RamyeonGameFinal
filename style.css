@@ -1,0 +1,1076 @@
+/*
+마우스 커서 디자인 바꾸기
+가스레인지 불 디자인하기
+게임시작 메뉴 만들기
+*/
+
+body {
+  margin: 0;
+  padding: 0;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+  background-color: #ffe083; 
+  cursor: default; /* 기본 마우스 화살표 지정 */
+  
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+#배경 {
+  position: relative;
+  width: min(100vw, calc(100vh * 16 / 9));
+  height: min(100vh, calc(100vw * 9 / 16));
+  background-image: url(배경.svg);
+  background-repeat: no-repeat;
+  background-size: 100% 100%;
+  background-position: center;
+  z-index: 0;
+
+  container-type: inline-size;
+  overflow: hidden;
+}
+
+/* 드래그 및 드래그 이미지 방지 */
+#배경, #배경 * {
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+#배경 img, #배경 svg {
+  -webkit-user-drag: none;
+  user-drag: none;
+}
+
+/* 💡 게임 종료/시작 전: 배경 안의 요소 클릭 방지 및 커서 기본값 설정 */
+#배경.not-started {
+  pointer-events: none !important;
+  cursor: default !important;
+}
+
+#배경.not-started * {
+  cursor: default !important;
+}
+
+/* 💡 게임 UI 및 모달창: 마우스 클릭 허용 */
+#game-ui,
+#game-over-modal {
+  pointer-events: auto !important;
+}
+
+/* 💡 [수정된 부분] 우선순위를 높여 버튼 위에서는 무조건 손가락 커서(pointer)가 뜨도록 설정 */
+#배경.not-started #start-btn,
+#배경.not-started #restart-btn,
+#배경.not-started .restart-btn,
+#배경.not-started #game-over-modal button,
+#start-btn,
+#restart-btn,
+.restart-btn,
+#game-over-modal button {
+  pointer-events: auto !important;
+  cursor: pointer !important;
+}
+/* 기본 선택 방지 및 브라우저 자체 이미지 드래그 기능 원천 차단 */
+#냄비, .냄비, #쌓인냄비, .물병, #냄비물, #스프가루, .물병-클론, .냄비-조각들, #익은라면, #계란후라이, #익힌계란후라이,
+#점수판, #쟁반 {
+  -webkit-user-select: none;  
+  -moz-user-select: none;     
+  -ms-user-select: none;      
+  user-select: none;          
+  -webkit-user-drag: none;   /* 브라우저가 흐릿한 유령 이미지 만드는 것 방지 */
+}
+
+/* 💡 냄비 바깥 투명 박스는 마우스 이벤트를 통과시켜 위/아래 가스레인지 간 간섭 방지 */
+#냄비, .냄비 {
+  position: absolute;
+  width: 21%;         
+  aspect-ratio: 1 / 1;
+  transform: translate(-50%, -50%);
+  display: none;
+  z-index: 3;
+  pointer-events: none;
+}
+
+/* 💡 냄비 실선/그림 부분 마우스 이벤트 허용 */
+#냄비 path, .냄비 path,
+#냄비바닥틀 path, #냄비위틀 path, #냄비아래틀 path,
+#냄비위테두리틀 path, #냄비테두리틀 path, #바닥테두리틀 path,
+#냄비오른쪽손잡이틀 path, #냄비왼쪽손잡이틀 path {
+  pointer-events: visiblePainted;
+  cursor: grab;
+}
+
+/* 💡 재료(물, 라면, 스프, 계란) 드롭 감지를 위해 냄비 입구 타원 및 내부 요소 이벤트 허용 */
+#냄비타원, .냄비타원,
+#냄비물, .냄비물,
+#냄비라면사리, .냄비라면사리,
+#익은라면, .익은라면,
+#계란후라이, .계란후라이,
+#익은계란후라이, .익은계란후라이,
+#스프가루, .스프가루 {
+  pointer-events: auto;
+}
+
+/* 모든 물병에 공통으로 적용되는 기본 스타일 */
+.물병 {
+  position: absolute;
+  width: 7%;
+  z-index: 12;
+  touch-action: none;
+  pointer-events: none; /* 여백은 클릭 투과 */
+}
+
+/* 모든 물병 내부 그래픽 클릭 감지 및 커서 설정 */
+.물병 * {
+  pointer-events: visiblePainted;
+  cursor: grab;
+}
+
+.물병.dragging * {
+  cursor: grabbing;
+}
+
+/* 드래그 중인 클론 전용 스타일 */
+.물병-클론 {
+  position: fixed !important;
+  pointer-events: none !important;
+  z-index: 9999 !important;
+  cursor: grabbing !important;
+}
+
+/* 물병별 개별 위치 설정 */
+#물병1 { top: 45.5%; left: 1.1%; }
+#물병2 { top: 46%; left: 7.5%; }
+#물병3 { top: 39%; left: 4.5%; z-index: -1; }
+#물병4 { top: 40%; left: -1%; z-index: -2; }
+
+#쌓인냄비위 {
+  position: absolute;
+  z-index: 10;
+  width: 24.5%;    
+  left: 19%;  
+  top: 40%;
+  transform: translate(-50%, -50%); 
+  pointer-events: none; /* 💡 SVG 사각형 배경 전체는 마우스 이벤트를 무시함 */
+}
+#쌓인냄비위 path {
+  cursor: grab;
+  pointer-events: visiblePainted; /* 💡 실제로 색/선이 칠해진 path 요소만 마우스 클릭을 감지함 */
+}
+#쌓인냄비아래 {
+  position: absolute;
+  width: 24.5%;
+  left: 19%;  
+  top: 40%;
+  transform: translate(-50%, -50%);
+  pointer-events: none; /* 투명 여백 클릭 방지 */
+}
+
+/* 💡 드래그 중일 때 전역/냄비 커서 지정 */
+.dragging-active, .dragging-active * {
+  cursor: grabbing !important;
+}
+
+#냄비물-마스크-틀 {
+  position: relative !important;
+  top: 50%;
+  left: 50%;
+  width: 100%;
+  height: 100%;
+  z-index: 8;
+  transform: translate(-50%,-50%);
+
+  /* 기존 냄비 마스크 유지 */
+  -webkit-mask-image: url(냄비바닥.svg), url(냄비위.svg);
+  mask-image: url(냄비바닥.svg), url(냄비위.svg);
+  
+  -webkit-mask-repeat: no-repeat, no-repeat;
+  mask-repeat: no-repeat, no-repeat;
+  -webkit-mask-size: 55% 55%, 66% 66%;
+  mask-size: 55% 55%, 66% 66%;
+  -webkit-mask-position: 50% 54.67%, 50% 30.29%;
+  mask-position: 50% 54.67%, 50% 30.29%;
+}
+#냄비물 {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  width: 65%;
+  height: 50%;
+  object-fit: contain;
+  transform: translate(-50%, 70%) scale(0);
+  animation-name: 물만내려가기;
+  animation-duration: 10s;
+  animation-iteration-count: 1;
+  animation-fill-mode: forwards;
+  overflow: hidden;
+  z-index: 100;
+
+  /* filter 제거 */
+  filter: none;
+}
+#라면국물 {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 20%;
+  height: auto;
+  z-index: 2;
+  opacity: 0;
+  pointer-events: none;
+  transform: scale(0);
+}
+#냄비물.filling, .냄비물.filling {
+  animation: 물차오르기 1.3s linear forwards !important;
+}
+
+/* SVG 내부 패스의 fill 색상 트랜지션 설정 */
+#냄비물 path, .냄비물 path {
+  transition: fill 0.4s ease, fill-opacity 0.4s ease;
+}
+
+/* 스프가 추가되었을 때 주황 국물 색상으로 변경 */
+#냄비물.has-soup path, .냄비물.has-soup path {
+  fill: #ff5e00; /* 원하는 주황 국물 색상 */
+  fill-opacity: 0.95;
+}
+@keyframes 물차오르기 {
+  0% { transform: translate(-50%, 65%) scale(0); }
+  60% { transform: translate(-50%, 65%) scale(1); }
+  100% { transform: translate(-50%, 43%) scale(1); }
+}
+#냄비물.evaporating, .냄비물.evaporating {
+  animation: 물줄어들기 2s linear forwards !important;
+}
+@keyframes 물줄어들기 {
+  0% { transform: translate(-50%, 43%) scale(1); }
+  40% { transform: translate(-50%, 65%) scale(1); }
+  100% { transform: translate(-50%, 65%) scale(0); }
+}
+
+.냄비-조각들 {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}
+#냄비테두리 {
+  position: absolute;
+  top: 25%;
+  width: 100%;
+  z-index: 7;
+  pointer-events: none;
+  height: auto;
+}
+#냄비테두리틀 {
+  position: absolute;
+  top: 25%;
+  width: 100%;
+  z-index: 70000;
+  pointer-events: none;
+  height: auto;
+}
+#냄비테두리틀 path {
+  pointer-events: visiblePainted; cursor: grab;
+}
+#바닥테두리 {
+  position: absolute;
+  top: 49%;
+  left: 49.5%;
+  z-index: 3;
+  width:55.2%;
+  height: auto;
+  transform: translate(-50%,-50%);
+  pointer-events: none;
+}
+#바닥테두리틀 {
+  position: absolute;
+  top: 49%;
+  left: 49.5%;
+  width:55.2%;
+  height: auto;
+  z-index: 10000;
+  transform: translate(-50%,-50%);
+  pointer-events: none;
+}
+#바닥테두리틀 path {
+  pointer-events: visiblePainted; cursor: grab;
+}
+
+#냄비.burning .냄비-마스크-틀1,
+#냄비.burning .냄비-마스크-틀2,
+#냄비.burning .냄비-마스크-틀3,
+#냄비.burning .냄비-마스크-틀4,
+#냄비.burning .냄비-마스크-틀5,
+#냄비.burning .냄비-마스크-틀6,
+#냄비.burning .냄비-마스크-틀7,
+#냄비.burning .냄비-마스크-틀8 {
+  opacity: 1;
+}
+
+/* 1. 상단 요약 애니메이션 설정 (수정된 타임라인 반영) */
+#냄비.burning #탄냄비바닥 {
+  visibility: visible;
+  animation: 냄비바닥 1.2s ease-in-out forwards;
+}
+#냄비.burning #탄냄비아래 {
+  visibility: visible;
+  animation: 냄비아래 2s ease-in-out 0.4s forwards;
+}
+#냄비.burning #탄냄비위 {
+  visibility: visible;
+  animation: 냄비위 2s ease-in-out 0.6s forwards;
+}
+#냄비.burning #탄냄비위테두리 {
+  visibility: visible;
+  animation: 냄비위테두리 2.3s ease-in-out 0.8s forwards;
+}
+#냄비.burning #탄오른쪽손잡이아래 {
+  visibility: visible;
+  animation: 오른쪽손잡이아래 1.5s ease-in-out 1.5s forwards;
+}
+#냄비.burning #탄오른쪽손잡이위 {
+  visibility: visible;
+  animation: 오른쪽손잡이위 1.5s ease-in-out 1.5s forwards;
+}
+#냄비.burning #탄왼쪽손잡이아래 {
+  visibility: visible;
+  animation: 왼쪽손잡이아래 1.5s ease-in-out 1.5s forwards;
+}
+#냄비.burning #탄왼쪽손잡이위 {
+  visibility: visible;
+  animation: 왼쪽손잡이위 1.5s ease-in-out 1.5s forwards;
+}
+
+/* 2. 개별 요소 위치 및 디테일 애니메이션 */
+#냄비왼쪽손잡이틀 { pointer-events: none; cursor: grab; fill-opacity: 0; position: absolute; top:42%; width: 20%; height: auto; z-index:10000; left:10.3%; transform: translate(-50%,-50%); }
+#냄비왼쪽손잡이틀 path { pointer-events: visiblePainted; cursor: grab;}
+#냄비왼쪽손잡이 { position: absolute; top:42%; width: 20%; z-index:0; left:10.3%; transform: translate(-50%,-50%); }
+#왼쪽손잡이위 { position: absolute; top:35.8%; left: 9.7%; width: 16%; z-index: -1; transform: translate(-50%, -50%); }
+
+.냄비-마스크-틀8 {
+  position: absolute; top:35.8%; left: 9.7%; width: 16%; aspect-ratio: 1 / 1; transform: translate(-50%, -50%); z-index: 5;
+  mask-image: url(왼쪽손잡이위.svg); mask-size: contain; mask-repeat: no-repeat; mask-position: center;
+}
+#탄왼쪽손잡이위 { position: absolute; top: 85%; left: -20%; width: 230%; transform: translate(50%, -50%); visibility: hidden;}
+
+#냄비.burning #탄왼쪽손잡이위 {
+  animation-name: 왼쪽손잡이위; animation-duration: 1.5s; animation-iteration-count: 1;
+  animation-timing-function: linear; animation-fill-mode: forwards; animation-delay: 1.6s;
+}
+@keyframes 왼쪽손잡이위 {
+  0% { transform: translate(50%, -50%); }
+  50% { transform: translate(0%, -90%); }
+  100% { transform: translate(-10%, -50%); }
+}
+
+#왼쪽손잡이아래 { position: absolute; top: 44%; left: 8%; width: 16%; z-index: -1; transform: translate(-50%, -50%); }
+.냄비-마스크-틀7 {
+  position: absolute; top: 43.9%; left: 8.3%; width: 16%; aspect-ratio: 1 / 1; transform: translate(-50%, -50%); z-index: 5;
+  mask-image: url(왼쪽손잡이아래.svg); mask-size: contain; mask-repeat: no-repeat; mask-position: center;
+}
+#탄왼쪽손잡이아래 { 
+  position: absolute; top: 50%; left: -180%; width: 230%; transform: translate(100%, -20%); 
+  opacity: 0; visibility: hidden;
+}
+
+#냄비.burning #탄왼쪽손잡이아래 {
+  animation-name: 왼쪽손잡이아래;
+  animation-duration: 1.5s;
+  animation-iteration-count: 1;
+  animation-timing-function: linear;
+  animation-fill-mode: forwards;
+  animation-delay: 1.6s;
+}
+@keyframes 왼쪽손잡이아래 {
+  0% { transform: translate(100%, -20%); opacity: 0; }
+  10% { opacity: 1; }
+  50% { transform: translate(50%, -20%); opacity: 1; }
+  100% { transform: translate(45%, -50%); opacity: 1; }
+}
+
+#냄비오른쪽손잡이틀 { pointer-events: none; cursor: grab; opacity: 0; position: absolute; top:42%; width: 20%; z-index:10000; left:89.7%; transform: translate(-50%,-50%); }
+#냄비오른쪽손잡이틀 path { pointer-events: visiblePainted; cursor: grab; }
+#냄비오른쪽손잡이 { position: absolute; top:42%; width: 20%; z-index:1; left:89.7%; transform: translate(-50%,-50%); }
+#오른쪽손잡이위 { position: absolute; top:35.65%; left:90.3%; width: 16%; z-index:0 ; transform: translate(-50%,-50%); }
+.냄비-마스크-틀6 {
+  position: absolute; top:35.69%; left:90.3%; width: 16%; aspect-ratio: 1 / 1; transform: translate(-50%, -50%); z-index: 5;
+  mask-image: url(오른쪽손잡이위.svg); mask-size: contain; mask-repeat: no-repeat; mask-position: center;
+}
+#탄오른쪽손잡이위 { position: absolute; top: 85%; left: -110%; width: 230%; transform: translate(-50%, -50%); visibility: hidden;}
+
+#냄비.burning #탄오른쪽손잡이위 {
+  animation-name: 오른쪽손잡이위; animation-duration: 1.5s; animation-iteration-count: 1; 
+  animation-timing-function: linear; animation-fill-mode: forwards; animation-delay: 1.6s;
+}
+@keyframes 오른쪽손잡이위 {
+  0%{ transform: translate(-50%, -50%); }
+  50% { transform: translate(0%, -90%); }
+  100%{ transform: translate(10%, -50%); }
+}
+
+#오른쪽손잡이아래 { position: absolute; top:44%; left:92%; width: 16%; z-index:-1; transform: translate(-50%,-50%); }
+.냄비-마스크-틀5 {
+  position: absolute; top:43.8%; left:91.8%; width: 16%; aspect-ratio: 1 / 1; transform: translate(-50%, -50%); z-index: 5;
+  mask-image: url(오른쪽손잡이아래.svg); mask-size: contain; mask-repeat: no-repeat; mask-position: center;
+}
+#탄오른쪽손잡이아래 { 
+  position: absolute; top: 50%; left: 50%; width: 230%; transform: translate(-100%, -20%); 
+  opacity: 0; visibility: hidden;
+}
+
+#냄비.burning #탄오른쪽손잡이아래 {
+  animation-name: 오른쪽손잡이아래;
+  animation-duration: 1.5s;
+  animation-iteration-count: 1;
+  animation-timing-function: linear;
+  animation-fill-mode: forwards;
+  animation-delay: 1.6s;
+}
+@keyframes 오른쪽손잡이아래 {
+  0%{ transform: translate(-100%, -20%); opacity: 0; }
+  10% { opacity: 1; }
+  50% { transform: translate(-50%, -20%); opacity: 1; }
+  100%{ transform: translate(-45%, -50%); opacity: 1; }
+}
+
+#냄비위테두리틀 { pointer-events: none; cursor: grab; fill-opacity: 0; position: absolute; top:44.8%; width: 72%; z-index:60000; left:50%; transform: translate(-50%,-50%); }
+#냄비위테두리틀 path { pointer-events: visiblePainted; cursor: grab; }
+#냄비위테두리 { position: absolute; top:44.8%; width: 72%; z-index:6; left:50%; transform: translate(-50%,-50%); }
+.냄비-마스크-틀4 {
+  position: absolute; top: 45%; left: 50%; width: 72%; aspect-ratio: 1 / 1; transform: translate(-50%, -50%); z-index: 6;
+  mask-image: url(냄비위테두리.svg); mask-size: contain; mask-repeat: no-repeat; mask-position: center;
+}
+#탄냄비위테두리 { position: absolute; left: 50%; top: 45%; width: 100%; transform: translate(-50%, -39%) scale(1); visibility: hidden;}
+
+#냄비.burning #탄냄비위테두리 {
+  animation-name: 냄비위테두리; animation-duration: 2.1s; animation-iteration-count: 1;
+  animation-timing-function: linear; animation-fill-mode: forwards; animation-delay: 0.9s;
+}
+@keyframes 냄비위테두리{
+  0%{ transform: translate(-50%, -39%) scale(1); }
+  100%{ transform: translate(-50%,-39%) scale(2.5); }
+}
+
+#냄비아래, .냄비아래 {
+  position: absolute;
+  top: 68.71%;
+  left: 50%;
+  width: 62.2%;
+  height: auto;
+  z-index: 5;
+  transform: translate(-50%, -50%);
+}
+#냄비아래틀 {
+  opacity: 0;
+  position: absolute;
+  top: 68.71%;
+  left: 50%;
+  width: 62.2%;
+  height: auto;
+  transform: translate(-50%,-50%);
+  z-index: 10000;
+  pointer-events: none;
+}
+#냄비아래틀 path {
+  cursor: grab;
+  pointer-events: visiblePainted;
+}
+.냄비-마스크-틀3 {
+  position: absolute; top:69%; left:50%; width: 62%; aspect-ratio: 1 / 1; transform: translate(-50%, -50%); 
+  z-index: 5;
+  mask-image: url(냄비아래.svg); mask-size: contain; mask-repeat: no-repeat; mask-position: center;
+}
+#탄냄비아래 { position: absolute; left:50%; width: 100%; z-index: 0; transform: translate(-50%, 60%); visibility: hidden;}
+#냄비.burning #탄냄비아래 {
+  visibility: visible;
+  animation-name: 냄비아래; animation-duration: 2s; animation-iteration-count: 1; animation-timing-function: linear; animation-fill-mode: forwards; animation-delay: -0.21s;
+}
+@keyframes 냄비아래{
+  0%{ transform: translate(-50%, 60%); }
+  100%{ transform: translate(-50%,-20%); }
+}
+
+#냄비위 { position: absolute; top:43.4%; width: 66.5%; height: auto; left:50%; z-index:1; transform: translate(-50%,-50%); }
+.냄비-마스크-틀2 {
+  position: absolute; top:43.1%; left:50%; width: 65.5%; aspect-ratio: 1 / 1; transform: translate(-50%, -50%); z-index: 1;
+  mask-image: url(냄비위.svg); mask-size: contain; mask-repeat: no-repeat; mask-position: center;
+}
+#탄냄비위 { position: absolute; left:50%; width: 100%; z-index: 0; transform: translate(-50%, 60%); visibility: hidden;}
+#냄비.burning #탄냄비위 {
+  visibility: visible;
+  animation-name: 냄비위; animation-duration: 2s; animation-iteration-count: 1; animation-timing-function: linear; animation-fill-mode: forwards; animation-delay: 0.3s;
+}
+@keyframes 냄비위{
+  0%{ transform: translate(-50%, 60%); }
+  100%{ transform: translate(-50%, -30%); }
+}
+
+#냄비바닥 {
+  position: absolute;
+  top: 52.7%;
+  left: 49.45%;
+  width: 55%;
+  height: auto;
+  aspect-ratio: 191 / 53; /* viewBox 비율 고정 */
+  transform: translate(-50%, -50%);
+}
+#냄비바닥 { z-index:2; }
+.냄비-마스크-틀1 {
+  position: absolute; 
+  top: 52.7%; 
+  left: 50%; 
+  width: 55%; 
+  aspect-ratio: 1 / 1; 
+  transform: translate(-50%, -50%); 
+  z-index: 2;
+  mask-image: url(냄비바닥.svg); 
+  mask-size: contain; 
+  mask-repeat: no-repeat; 
+  mask-position: center;
+}
+#탄냄비바닥 { 
+  position: absolute; 
+  left: 50%; 
+  top: 58%; 
+  width: 100%;
+  height: auto;
+  transform-origin: center;
+  transform: translate(-50%, -50%) scale(0); 
+  visibility: hidden;
+}
+
+#냄비.burning #탄냄비바닥 {
+  visibility: visible;
+  animation-name: 냄비바닥; 
+  animation-duration: 1s; 
+  animation-iteration-count: 1; 
+  animation-timing-function: linear; 
+  animation-fill-mode: forwards;
+}
+@keyframes 냄비바닥 {
+  0% { transform: translate(-50%, -45%) scale(0);}
+  100% { transform: translate(-50%, -48%) scale(2.3);}
+}
+
+#냄비타원 {
+  position: absolute;
+  transform: translate(-50%,-50%);
+  top: 44.8%;
+  left: 49.9%;
+  width: 77%;
+  height: 44%;
+  border-radius: 50%;
+  border: solid 0px;
+  z-index:10000;
+  pointer-events: auto; /* 💡 재료 마우스 드롭 인식 보장 */
+}
+#냄비라면사리 {
+  position: absolute;
+  z-index: 3;
+  width: 67%;
+  transform: translate(-50%,-50%);
+  top: 52.5%;
+  left: 53.5%;
+  opacity: 0;
+}
+#라면위 {
+  position: absolute;
+  width: 67%;
+  height: auto;
+  transform: translate(-50%,-50%);
+  top: 52.5%;
+  left: 53.5%;
+  z-index: 101;
+  opacity: 0;
+}
+/* 공통 라면 사리 스타일 */
+.라면사리 {
+  position: absolute;
+  width: 13%;
+  z-index: 10;
+  touch-action: none;
+  pointer-events: none; /* 여백은 클릭 투과 */
+}
+
+/* 모든 라면 사리 내부 그래픽 클릭 감지 및 커서 설정 */
+.라면사리 * {
+  pointer-events: visiblePainted;
+  cursor: grab;
+}
+
+.라면사리.dragging * {
+  cursor: grabbing;
+}
+
+/* 드래그 중인 클론 전용 스타일 */
+.라면사리-클론 {
+  position: fixed !important;
+  pointer-events: none !important;
+  z-index: 9999 !important;
+  cursor: grabbing !important;
+}
+
+/* 라면 사리별 개별 위치 설정 (여러 개 만들 경우 left 값 조정) */
+#라면사리1 { top: 66%; left: 21.5%; transform: translate(-50%, -50%); }
+#라면사리2 { top: 62.4%; left: 21.5%; transform: translate(-50%, -50%); }
+#라면사리3 { top: 58.8%; left: 21.5%; transform: translate(-50%, -50%); }
+#bubble-container {
+  position: absolute !important;
+  top: 10%;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 10000;
+  pointer-events: none;
+  overflow: hidden;
+}
+.bubble {
+  position: absolute !important;
+  width: 10%;
+  height: 10%;
+  background-image: url('기포.svg');
+  background-size: contain !important;
+  background-position: center !important;
+  background-repeat: no-repeat !important;
+  
+  z-index: 1000 !important; 
+  pointer-events: none !important;
+
+  animation: bubblePop 0.4s ease-out forwards;
+}
+@keyframes bubblePop {
+  0% {
+    transform: translate(-50%, -20%) scale(0.2);
+    opacity: 0.8;
+  }
+  90% {
+    opacity: 0.8;
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(1.0);
+    opacity: 0;
+  }
+}
+.스프 {
+  position: absolute;
+  width: 6%;
+  height: auto;
+  cursor: grab;
+}
+#스프1 {
+  top: 74.2%;
+  left: 26.35%;
+  z-index: 2;
+}
+#스프2 {
+  top: 80.2%;
+  left: 22.1%;
+  z-index: 0;
+}
+#스프3 {
+  top: 80.7%;
+  left: 27.6%;
+  z-index: 1;
+}
+#스프4 {
+  top: 73.7%;
+  left: 20.6%;
+  z-index: -1;
+}
+#스프가루 {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  top: 50%;
+  left: 51%;
+  z-index: 1000;
+  width: 20%;
+  height: auto;
+  opacity: 0;
+  transition: opacity 0.5s linear;
+}
+/* 스프가루가 빈 냄비 바닥에 남아있을 때 붙는 클래스 */
+#스프가루.visible {
+  opacity: 1;
+}
+.계란 {
+  position: absolute;
+  width: 5%;
+  height: auto;
+  z-index: 100;
+  cursor: grab;
+}
+#계란1{
+  top: 21%;
+  left: 1%;
+}
+#계란2{
+  top: 26%;
+  left: 3%;
+}
+#계란바구니 {
+  position: absolute;
+  width: 20%;
+  height: auto;
+  top: 70.5%;
+  left: 0.5%;
+  pointer-events: none;
+}
+#계란바구니 path {
+  cursor: grab;
+  pointer-events: visiblePainted;
+}
+#계란후라이 {
+  position: absolute;
+  z-index: 1000;
+  width: 40%;
+  height: auto;
+  transform: translate(-50%,-50%);
+  top: 50%;
+  left: 50%;
+  opacity: 0;
+}
+#익은계란후라이 {
+  position: absolute;
+  z-index: 1000;
+  width: 40%;
+  height: auto;
+  transform: translate(-50%,-50%);
+  top: 50%;
+  left: 50%;
+  opacity: 0;
+}
+#익은라면 {
+  position: absolute;
+  z-index: 100;
+  width: 80%;
+  height: auto;
+  transform: translate(-50%,-50%);
+  top: 56%;
+  left: 52%;
+  opacity: 0;
+}
+#쟁반 {
+  position: absolute;
+  z-index: 5;
+  width: 30%;
+  height: auto;
+  top: 33%;
+  left: 68%;
+  pointer-events: none;
+}
+#쟁반 path{
+  pointer-events: visiblePainted;
+}
+#점수판 {
+  position: absolute;
+  z-index: 5;
+  width: 20%;
+  height: 8%;
+  top: 20%;
+  left: 70%;
+  /* 💡 800% 대신 배경 너비 비례 단위(cqw) 적용 및 중앙 정렬 */
+  font-size: 5cqw;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.가스레인지 {
+  position: absolute;
+  transform: translate(-50%,-50%);
+  width:17%;
+  height: 21%;
+  border-radius: 50%;
+  border: solid 0px;
+}
+.가스레인지아래 {
+  top:76%;
+}
+#가스레인지1 {
+  left:63.6%;
+}
+#가스레인지2 {
+  left:45.7%;
+}
+.가스레인지위 {
+  top:56%;
+}
+#가스레인지3 {
+  left:54.6%;
+}
+#가스레인지4 {
+  left:36.7%;
+}
+/* 상단 중앙 게임 제어 UI (반응형 및 중앙 배치) */
+#game-ui {
+  position: absolute; /* fixed -> absolute 변경 */
+  top: 3%;            /* vh -> % 변경 */
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  background: rgba(0, 0, 0, 0.75);
+  color: white;
+  padding: 1% 2%;
+  border-radius: 8px;
+  font-size: clamp(14px, 2%, 22px);
+  font-weight: bold;
+  z-index: 10000;
+  white-space: nowrap;
+}
+
+/* 최종 점수 팝업 모달 (반응형) */
+/* 1. 오른쪽 위 남은 시간 초 표시 */
+#timer-box {
+  position: absolute;
+  top: 10%;
+  left: 70%;
+  background: rgba(0, 0, 0, 0.75);
+  color: white;
+  padding: 1%;
+  border-radius: 8px;
+  font-size: clamp(20px, 2vw,30px);
+  font-weight: bold;
+  z-index: 10000;
+  white-space: nowrap;
+}
+
+/* 2. 중앙 상단 메인 버튼 (게임시작 / 다시시작 이미지) */
+#start-btn {
+  position: absolute;
+  top: 3%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 20%; /* 이미지 크기에 맞춰 숫자 조절 가능 */
+  height: auto;
+  cursor: pointer;
+  z-index: 10000;
+}
+
+/* 3. 최종 점수 팝업 모달 전체 배경 */
+#game-over-modal {
+  display: none;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.7);
+  justify-content: center;
+  align-items: center;
+  z-index: 20000;
+}
+
+/* 모달 흰색 상자 */
+.modal-content {
+  background: #ffffff;
+  width: min(85vw, 380px);
+  padding: 4vh 3vw;
+  border-radius: 1.5vh;
+  text-align: center;
+  color: #2f3542;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+  position: relative;
+}
+
+.modal-content h2 {
+  margin-top: 0;
+  font-size: clamp(20px, 3vw, 30px);
+}
+
+.modal-content p {
+  font-size: clamp(16px, 2.2vw, 24px);
+  margin: 2vh 0;
+}
+
+/* 4. ★ 핵심 수정: 모달 내부 다시시작 버튼 (화면 위로 붕 뜨던 문제 해결) */
+.restart-btn {
+  width: 80%; /* 원하는 크기로 조절 */
+  height: auto;
+  margin-top: 15px;
+  cursor: pointer;
+  display: inline-block;
+}
+#게임방법{
+  position: absolute;
+  z-index: 1000000000;
+  left: 50%;
+  top: 52%;
+  height: 0%;
+  width: auto;
+  transform: translate(-50%,-50%);
+}
+#게임방법버튼{
+  position: absolute;
+  width: 16%;
+  height: auto;
+  top: 3%;
+  left: 14%;
+  pointer-events: auto;
+}
+#게임방법버튼:hover {
+  cursor: pointer !important;
+}
+#게임시작1 {
+  position: absolute;
+  z-index: 1000000001;
+  width: 0%;
+  top: 87.5%;
+  left: 48%;
+  pointer-events: auto;
+}
+#게임시작1:hover {
+  cursor: pointer !important;
+}
+#목표금액 {
+  position: absolute;
+  left: 70%;
+  width: 30%;
+  font-size: 4cqw;
+}
+.flameboxbox {
+  height: 20%;
+  aspect-ratio: 1/1;
+  position: absolute;
+  border: solid 0px;
+}
+#flameboxbox1 {
+  left: 31.0%;
+  top: 45%;
+}
+#flameboxbox2 {
+  left: 48.8%;
+  top: 45%;
+}
+#flameboxbox3 {
+  left: 40.0%;
+  top: 65%;
+}
+#flameboxbox4 {
+  left: 57.7%;
+  top: 65%;
+}
+.flame-box {
+  height: 12%;
+  aspect-ratio: 1/1;
+  transform-origin: center bottom;
+  animation: flicker 3ms 200ms ease-in infinite alternate;
+}
+.flame {
+  bottom: 0;
+  position: absolute;
+  border-top-left-radius: 50%;
+  border-bottom-left-radius: 50%;
+  border-bottom-right-radius: 50%;
+  transform: rotate(-45deg) scale(1.5, 1.5);
+}
+.yellow {
+  height: 50%; /* 30px / 60px */
+  width: 50%;  /* 30px / 60px */
+  left: 25%;   /* 15px / 60px */
+  background: #ffd700;
+  box-shadow: 0px 0px 9px 0px #ffd700;
+}
+.orange {
+  left: 16.6667%; /* 10px / 60px */
+  width: 70%; /* 40px / 60px */
+  aspect-ratio: 1/1;
+  background: #ffa500;
+  box-shadow: 0px 0px 9px 0px #ffa500;
+}
+.red {
+  height: 83.3333%; /* 50px / 60px */
+  aspect-ratio: 1/1;
+  left: 8.3333%;    /* 5px / 60px */
+  background: #ff4500;
+  box-shadow: 0px 0px 5px 0px #ff4500;
+}
+.white {
+  height: 85%;
+  aspect-ratio: 1/1;
+  left: 50%;
+  bottom: -15%;
+  background: #ffffff;
+  box-shadow: 0px 0px 9px 0px #ffffff;
+  transform: translate(-50%,0%) rotate(-45deg);
+}
+.circle {
+  border-radius: 50%;
+  position: absolute;
+}
+.blue {
+  left: 50%;
+  bottom: -40%;
+  width: 50%;
+  aspect-ratio: 1/1;
+  background: #6a5acd;
+  box-shadow: 0px 0px 15px 0px #6a5acd;
+  transform: translate(-50%,-50%);
+}
+@keyframes flicker {
+  0% {transform: rotate(-2deg);}
+  20%{transform: rotate(3deg);}
+  40%{transform: rotate(-2deg);}
+  60%{transform: rotate(2deg) scaleY(1.06);}
+  80%{transform: rotate(-4deg) scaleY(0.98);}
+  100% {transform: rotate(2deg);}
+}
+.flame1 { position: absolute; left: 44%; top: 30%; z-index:-11}
+.flame2 { position: absolute; left: 57%; top: 40%; z-index:-10}
+.flame3 { position: absolute; left: 52%; top: 49%; z-index:-7}
+.flame4 { position: absolute; left: 35.5%; top: 49%; z-index:-7}
+.flame5 { position: absolute; left: 30%; top: 40%; z-index:-10}
+.가스레인지위신 {
+  position: absolute;
+  width: 3.5%;
+  aspect-ratio: 1/1;
+  z-index: -8;
+}
+#가스레인지위1 {
+  left: 34.95%;
+  top: 52.5%;
+}
+#가스레인지위2 {
+  left: 52.8%;
+  top: 52.5%;
+}
+#가스레인지위3 {
+  left: 44.0%;
+  top: 72.4%;
+}
+#가스레인지위4 {
+  left: 61.75%;
+  top: 72.4%;
+}
+.가스레인지아래신 {
+  position: absolute;
+  width: 13.65%;
+  aspect-ratio: 1/1;
+  z-index: -5;
+}
+#가스레인지아래1 {
+  left: 29.9%;
+  top: 48.5%;
+}
+#가스레인지아래2 {
+  left: 47.7%;
+  top: 48.5%;
+}
+#가스레인지아래3 {
+  left: 38.9%;
+  top: 68.4%;
+}
+#가스레인지아래4 {
+  left: 56.63%;
+  top: 68.4%;
+}
+#이름 {
+  position: absolute;
+  font-size: 1.8vw;
+  margin: 0.5%;
+  z-index: -100;
+}
