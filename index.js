@@ -1166,7 +1166,7 @@ function cookRamen(potElement, potRamen, cookedRamen) {
     potRamen.style.opacity = '0';
     if (ramenTop) ramenTop.style.opacity = '0'; 
     cookedRamen.style.opacity = '1';
-  }, 1500);
+  }, 1000);
 }
 
 /* ==========================================
