@@ -689,7 +689,7 @@ function startBoiling(waterElement, potElement) {
     waterElement.boilStartTime = sessionStartTime;
     const initialAccumulated = waterElement.accumulatedBoilTime || 0;
 
-    const RAMP_UP_DURATION = 3000; 
+    const RAMP_UP_DURATION = 1000; 
     const START_FPS = 5;   
     const MAX_FPS = 25;    
     const MAX_BUBBLES = 50; 
