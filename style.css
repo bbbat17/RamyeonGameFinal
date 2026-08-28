@@ -562,7 +562,7 @@ body {
   top: 44.8%;
   left: 49.9%;
   width: 84.9%;
-  height: 55%;
+  height: 57%;
   border-radius: 50%;
   border: solid 2px;
   z-index:10000;
@@ -784,7 +784,7 @@ body {
   width:17.5%;
   height: 22.5%;
   border-radius: 50%;
-  border: solid 0px;
+  border: solid 2px;
 }
 .가스레인지아래 {
   top:76%;
