@@ -559,7 +559,7 @@ body {
 #냄비타원 {
   position: absolute;
   transform: translate(-50%,-50%);
-  top: 44.8%;
+  top: 44.4%;
   left: 49.9%;
   width: 84.9%;
   height: 57%;
@@ -787,7 +787,7 @@ body {
   border: solid 2px;
 }
 .가스레인지아래 {
-  top:76%;
+  top:75%;
 }
 #가스레인지1 {
   left:63.6%;
@@ -796,7 +796,7 @@ body {
   left:45.7%;
 }
 .가스레인지위 {
-  top:56%;
+  top:55%;
 }
 #가스레인지3 {
   left:54.6%;
