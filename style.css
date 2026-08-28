@@ -561,8 +561,8 @@ body {
   transform: translate(-50%,-50%);
   top: 44.8%;
   left: 49.9%;
-  width: 79%;
-  height: 46%;
+  width: 81%;
+  height: 47%;
   border-radius: 50%;
   border: solid 2px;
   z-index:10000;
@@ -657,7 +657,7 @@ body {
 }
 .스프 {
   position: absolute;
-  width: 6%;
+  width: 7%;
   height: auto;
   cursor: grab;
 }
