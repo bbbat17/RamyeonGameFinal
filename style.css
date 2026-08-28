@@ -561,10 +561,10 @@ body {
   transform: translate(-50%,-50%);
   top: 44.8%;
   left: 49.9%;
-  width: 83%;
-  height: 48%;
+  width: 85%;
+  height: 50%;
   border-radius: 50%;
-  border: solid 0px;
+  border: solid 2px;
   z-index:10000;
   pointer-events: auto; /* 💡 재료 마우스 드롭 인식 보장 */
 }
