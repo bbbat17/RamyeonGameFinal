@@ -561,8 +561,8 @@ body {
   transform: translate(-50%,-50%);
   top: 44.8%;
   left: 49.9%;
-  width: 81%;
-  height: 47%;
+  width: 83%;
+  height: 48%;
   border-radius: 50%;
   border: solid 2px;
   z-index:10000;
@@ -668,17 +668,17 @@ body {
 }
 #스프2 {
   top: 80.2%;
-  left: 22.1%;
+  left: 21.5%;
   z-index: 0;
 }
 #스프3 {
   top: 80.7%;
-  left: 27.6%;
+  left: 27.9%;
   z-index: 1;
 }
 #스프4 {
   top: 73.7%;
-  left: 20.6%;
+  left: 20%;
   z-index: -1;
 }
 #스프가루 {
@@ -781,10 +781,10 @@ body {
 .가스레인지 {
   position: absolute;
   transform: translate(-50%,-50%);
-  width:17%;
-  height: 21%;
+  width:19%;
+  height: 23%;
   border-radius: 50%;
-  border: solid 0px;
+  border: solid 2px;
 }
 .가스레인지아래 {
   top:76%;
