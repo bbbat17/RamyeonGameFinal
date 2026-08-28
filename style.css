@@ -590,7 +590,7 @@ body {
 /* 공통 라면 사리 스타일 */
 .라면사리 {
   position: absolute;
-  width: 13%;
+  width: 14%;
   z-index: 10;
   touch-action: none;
   pointer-events: none; /* 여백은 클릭 투과 */
@@ -781,8 +781,8 @@ body {
 .가스레인지 {
   position: absolute;
   transform: translate(-50%,-50%);
-  width:19%;
-  height: 23%;
+  width:17.5%;
+  height: 22.5%;
   border-radius: 50%;
   border: solid 2px;
 }
