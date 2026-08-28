@@ -661,7 +661,7 @@ function startBoiling(waterElement, potElement) {
 
   const waitTime = (waterElement.boilWaitRemaining !== undefined && waterElement.boilWaitRemaining !== null)
     ? waterElement.boilWaitRemaining
-    : ((waterElement.accumulatedBoilTime > 0) ? 0 : 1000);
+    : ((waterElement.accumulatedBoilTime > 0) ? 0 : 000);
 
   if (waitTime > 0) {
     waterElement.isBoilWaiting = true;
