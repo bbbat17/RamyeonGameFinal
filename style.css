@@ -562,9 +562,9 @@ body {
   top: 44.8%;
   left: 49.9%;
   width: 84.9%;
-  height: 53%;
+  height: 55%;
   border-radius: 50%;
-  border: solid 0px;
+  border: solid 2px;
   z-index:10000;
   pointer-events: auto; /* 💡 재료 마우스 드롭 인식 보장 */
 }
